@@ -15,10 +15,10 @@ public class CredentialsMatcher extends SimpleCredentialsMatcher {
     @Override
     public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
         UsernamePasswordToken authcToken = (UsernamePasswordToken) token;
-        //Object tokenCredentials = EncryptUtils.md5(authcToken.getUsername() + String.valueOf(authcToken.getPassword()));
+        String username = authcToken.getUsername();
+        Object tokenCredentials = String.valueOf(authcToken.getPassword());
         LOGGER.info(authcToken.getPassword().toString());
-        Object tokenCredentials = authcToken.getPassword();
-        Object accountCredentials = getCredentials(info);
+        Object accountCredentials = EncryptUtils.md5(username + getCredentials(info).toString());
         return accountCredentials.equals(tokenCredentials);
     }
 }

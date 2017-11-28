@@ -6,10 +6,13 @@ import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.web.mgt.CookieRememberMeManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.servlet.ShiroHttpSession;
 import org.apache.shiro.web.servlet.SimpleCookie;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.util.LinkedHashMap;
@@ -51,35 +54,29 @@ public class ShiroConfig {
 
 
     @Bean
-    public DefaultWebSecurityManager securityManager(ShiroRealm shiroRealm){
-        DefaultWebSecurityManager manager =  new DefaultWebSecurityManager();
+    public DefaultWebSecurityManager securityManager(ShiroRealm shiroRealm, DefaultWebSessionManager sessionManager){
+        DefaultWebSecurityManager manager = new DefaultWebSecurityManager();
         manager.setRealm(shiroRealm);
-        //manager.setRememberMeManager(rememberMeManager());
+        //manager.setSessionManager(sessionManager);
         return manager;
     }
 
     @Bean
-    public ShiroRealm shiroRealm(){
-        return new ShiroRealm();
+    public DefaultWebSessionManager sessionManager(){
+        DefaultWebSessionManager manager = new DefaultWebSessionManager();
+        SimpleCookie cookie = new SimpleCookie(ShiroHttpSession.DEFAULT_SESSION_ID_NAME);
+        manager.setGlobalSessionTimeout(2592000);
+        manager.setSessionIdCookie(cookie);
+        manager.setSessionIdCookieEnabled(true);
+        return manager;
     }
 
-//    @Bean
-//    public CookieRememberMeManager rememberMeManager(){
-//        CookieRememberMeManager cookieRememberMeManager = new CookieRememberMeManager();
-//        cookieRememberMeManager.setCookie(rememberMeCookie());
-//        //rememberMe cookie加密的密钥 建议每个项目都不一样 默认AES算法 密钥长度(128 256 512 位)
-//        //cookieRememberMeManager.setCipherKey(Base64.decode("3JvYhmBLUs0ETA5Kprsdag=="));
-//        return cookieRememberMeManager;
-//    }
-//
-//    @Bean
-//    public SimpleCookie rememberMeCookie(){
-//        //这个参数是cookie的名称，对应前端的checkbox的name = rememberMe
-//        SimpleCookie simpleCookie = new SimpleCookie("rememberMe");
-//        //<!-- 记住我cookie生效时间30天 ,单位秒;-->
-//        simpleCookie.setMaxAge(2592000);
-//        return simpleCookie;
-//    }
+    @Bean
+    public ShiroRealm shiroRealm(@Qualifier("credentialsMatcher") CredentialsMatcher matcher){
+        ShiroRealm shiroRealm = new ShiroRealm();
+        shiroRealm.setCredentialsMatcher(matcher);
+        return shiroRealm;
+    }
 
     //开启shiro aop注解支持
     @Bean
@@ -97,5 +94,11 @@ public class ShiroConfig {
         DefaultAdvisorAutoProxyCreator defaultAAP = new DefaultAdvisorAutoProxyCreator();
         defaultAAP.setProxyTargetClass(true);
         return defaultAAP;
+    }
+
+    @Bean(name="credentialsMatcher")
+    public CredentialsMatcher getCredentialsMatcher(){
+        CredentialsMatcher credentialsMatcher = new CredentialsMatcher();
+        return credentialsMatcher;
     }
 }

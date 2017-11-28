@@ -13,7 +13,7 @@ var submitLogin = function() {
 
     var param = {
         username: username,
-        password: password
+        password: md5(username + md5('jiayibilin' + password))
     }
 
     if ( $('input[name="remember"]').is(':checked') ) {
@@ -24,7 +24,7 @@ var submitLogin = function() {
 
 
     $.ajax({
-        url: '/submitLogin',
+        url: 'http://www.jiayibilin.com/api-webmanage/submitLogin',
         data: param,
         success: function(res){
             if (res.code == 0) {
@@ -33,7 +33,7 @@ var submitLogin = function() {
                 } else {
                     SetCookie('password', '');
                 }
-                window.location.href="/html/index.html";
+                window.location.href="./html/index.html";
             } else {
                 showModal(res.msg);
             }
