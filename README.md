@@ -1,2 +1,0 @@
-# jyblWebManager
-# admin
